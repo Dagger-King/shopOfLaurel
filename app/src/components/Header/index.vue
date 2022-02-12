@@ -39,6 +39,7 @@
             type="text"
             id="autocomplete"
             class="input-error input-xxlarge"
+            v-model="keyword"
           />
           <button
             class="sui-btn btn-xlarge btn-danger"
@@ -56,9 +57,21 @@
 <script>
 export default {
   name: "",
+  data(){
+    return{
+      keyword:'',
+    }
+  },
   methods: {
     goSearch() {
-      this.$router.push("/search");
+      // 路由传参
+      // 第一种：字符串形式
+      // this.$router.push("/search/"+this.keyword+"?k="+this.keyword.toUpperCase());
+      // 第二种：模板字符串
+      // this.$router.push('/search/${this.keyword}?k=${this.keyword.toUpperCase()}');
+      // 第三种：对象
+      this.$router.push({name:"search",params:{keyword:this.keyword},query:{k:this.keyword.toUpperCase()}})
+      // console.log(this.data.keyword)
     },
   },
 };

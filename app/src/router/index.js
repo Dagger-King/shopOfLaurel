@@ -14,19 +14,31 @@ export default new VueRouter({
     routes: [
         {
             path: '/home',
-            component: Home
+            component: Home,
+            meta:{
+                show:true
+            }
         },
         {
             path: '/login',
-            component: Login
+            component: Login,
+            meta:{
+                show:false
+            }
         },
         {
             path: '/register',
-            component: Register
+            component: Register,
+            meta:{
+                show:false
+            }
         },
         {
-            path: '/search',
-            component: Search
+            path: '/search/:keyword',
+            component: Search,
+            meta:{
+                show:true
+            }
         },
         // 重定向，在访问/时立刻定向到首页。
         {
