@@ -20,6 +20,9 @@ export default {
     HelloWorld,
     Header,
     Footer,
+  },
+  mounted(){
+    this.$store.dispatch("categoryList");
   }
 }
 </script>
