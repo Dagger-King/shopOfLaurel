@@ -35,7 +35,7 @@
                     <dt>
                       <a
                         :data-categoryName="c2.categoryName"
-                        :data-category1Id="c2.categoryId"
+                        :data-category2Id="c2.categoryId"
                       >
                         <!-- 电子书 -->
                         {{ c2.categoryName }}
@@ -45,7 +45,7 @@
                       <em v-for="c3 in c2.categoryChild" :key="c3.categoryId">
                         <a
                           :data-categoryName="c3.categoryName"
-                          :data-category1Id="c3.categoryId"
+                          :data-category3Id="c3.categoryId"
                         >
                           <!-- 婚恋/两性 -->
                           {{ c3.categoryName }}
@@ -1776,6 +1776,9 @@ export default {
           query.category3Id = category3id;
         }
         location.query = query;
+        if (this.$route.params){
+          location.params=this.$route.params
+        }
         this.$router.push(location);
       }
     },
