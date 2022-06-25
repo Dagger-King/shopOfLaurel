@@ -13,7 +13,7 @@
       <div class="cart-body">
         <ul v-for="(good) in shopCartInfo" :key="good.id" class="cart-list">
           <li class="cart-list-con1">
-            <input type="checkbox" name="chk_list" :checked="good.isChecked" @change="changeChecked(good,$event)">
+            <input type="checkbox" name="chk_list" :checked="good.isChecked==1" @change="changeChecked(good,$event)">
           </li>
           <li class="cart-list-con2">
             <img :src="good.imgUrl">
@@ -185,7 +185,7 @@
         }
       },
       async changeChecked(good,event){
-        let isChecked=event.target.Checked?1:0
+        let isChecked=event.target.checked?1:2
         try{
           await this.$store.dispatch('changeCheckedById',{skuId : good.skuId, isChecked : isChecked})
           this.getData()
