@@ -9,3 +9,8 @@ export const reqCategoryList = () => requests({ url: '/api/product/getBaseCatego
 export const reqBanner = () => mockRequests.get('/banner')
 export const reqFloor = () => mockRequests.get('/floor')
 export const reqSearch = (params) => requests({ url: 'api/list', method: 'post', data: params })
+export const reqDetail = (skuId) => requests({ url: `api/item/${skuId}`, method: 'get' })
+export const reqAddOrUpdateShopCart = (skuId, skuNum) => requests({ url: `api/cart/addToCart/${ skuId }/${ skuNum }`, method: 'post' })
+export const reqCastList = () => requests({ url: '/api/cart/cartList', method: 'get' })
+export const reqDeleteCartById = (skuId) => requests({ url: `/api/cart/deleteCart/${skuId}`, method: 'delete'})
+export const reqChangeCheckedById = (skuId,isChecked) => requests({ url: `/api/cart/checkCart/${skuId}/${isChecked}`, method: 'get'})
