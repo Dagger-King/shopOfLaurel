@@ -1,0 +1,13 @@
+复习：
+    1.完成了登录与注册的静态组件，assets文件夹，组件共用的静态资源，css当中书写@符号
+    2.表单验证暂时没有处理，最后一天统一处理
+    3.vuex存储数据非持久化
+1.要做的事情是把token写入登录信息
+    1.写api，getUserInfo
+    2.三连环，获取用户信息
+    3.Action什么时候派发，获取用户信息，home，mounted加载完成时，所以我们去home的mounted派发
+    4.登录服务器接口返回的是未登录，因为没有token
+        在请求拦截器做判断，需要携带token带给服务器
+        我们可以再network的getUserInfo中找到token
+    5.去store-user完善请求
+    6.去header更改，添加一个计算的userName来判断用户信息的显示情况

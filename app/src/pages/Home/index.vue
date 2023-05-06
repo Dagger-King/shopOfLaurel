@@ -39,6 +39,7 @@ export default {
   },
   mounted() {
     this.$store.dispatch("floor");
+    this.$store.dispatch("getUserInfo")
   },
 }
 </script>

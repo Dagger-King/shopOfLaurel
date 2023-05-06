@@ -33,6 +33,23 @@ const actions = {
         }else{
             return Promise.reject(new Error('fail'))
         }
+    },
+    deleteAllCheckedCart({dispatch,getters}){
+        let PromiseAll=[]
+        // console.log(getters.shopCartInfo)
+        getters.shopCartInfo.forEach(element => {
+            let Promise = element.isChecked==1?dispatch('deleteCartById',{skuId:element.skuId}):''
+            PromiseAll.push(Promise)
+        });
+        return Promise.all(PromiseAll)
+    },
+    changeAllChecked({dispatch,getters},isChecked){
+        let PromiseAll=[]
+        getters.shopCartInfo.forEach(element => {
+            let Promise = dispatch('changeCheckedById',{skuId:element.skuId, isChecked})
+            PromiseAll.push(Promise)
+        })
+        return Promise.all(PromiseAll)
     }
 }
 const getters = {

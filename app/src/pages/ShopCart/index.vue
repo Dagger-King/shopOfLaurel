@@ -11,33 +11,55 @@
         <div class="cart-th6">操作</div>
       </div>
       <div class="cart-body">
-        <ul v-for="(good) in shopCartInfo" :key="good.id" class="cart-list">
+        <ul v-for="good in shopCartInfo" :key="good.id" class="cart-list">
           <li class="cart-list-con1">
-            <input type="checkbox" name="chk_list" :checked="good.isChecked==1" @change="changeChecked(good,$event)">
+            <input
+              type="checkbox"
+              name="chk_list"
+              :checked="good.isChecked == 1"
+              @change="changeChecked(good, $event)"
+            />
           </li>
           <li class="cart-list-con2">
-            <img :src="good.imgUrl">
+            <img :src="good.imgUrl" />
             <!-- <div class="item-msg">米家（MIJIA） 小米小白智能摄像机增强版 1080p高清360度全景拍摄AI增强</div> -->
-            <div class="item-msg">{{good.skuName}}</div>
+            <div class="item-msg">{{ good.skuName }}</div>
           </li>
           <!-- <li class="cart-list-con3">
             <div class="item-txt">语音升级款</div>
           </li> -->
           <li class="cart-list-con4">
             <!-- <span class="price">399.00</span> -->
-            <span class="price">{{good.skuPrice}}</span>
+            <span class="price">{{ good.skuPrice }}</span>
           </li>
           <li class="cart-list-con5">
-            <a href="javascript:void(0)" class="mins" @click="handler('minus',-1,good)">-</a>
-            <input autocomplete="off" type="text" :value="good.skuNum" minnum="1" class="itxt" @change="handler('change',$event.target.value*1,good)">
-            <a href="javascript:void(0)" class="plus" @click="handler('add',1,good)">+</a>
+            <a
+              href="javascript:void(0)"
+              class="mins"
+              @click="handler('minus', -1, good)"
+              >-</a
+            >
+            <input
+              autocomplete="off"
+              type="text"
+              :value="good.skuNum"
+              minnum="1"
+              class="itxt"
+              @change="handler('change', $event.target.value * 1, good)"
+            />
+            <a
+              href="javascript:void(0)"
+              class="plus"
+              @click="handler('add', 1, good)"
+              >+</a
+            >
           </li>
           <li class="cart-list-con6">
-            <span class="sum">{{good.skuPrice*good.skuNum}}</span>
+            <span class="sum">{{ good.skuPrice * good.skuNum }}</span>
           </li>
           <li class="cart-list-con7">
             <a class="sindelet" @click="deleteById(good)">删除</a>
-            <br>
+            <br />
             <a href="#none">移到收藏</a>
           </li>
         </ul>
@@ -103,20 +125,24 @@
     </div>
     <div class="cart-tool">
       <div class="select-all">
-        <input class="chooseAll" type="checkbox" :checked="isAllChecked">
+        <input
+          class="chooseAll"
+          type="checkbox"
+          :checked="isAllChecked && shopCartInfo.length > 0"
+          @change="changeAllChecked($event)"
+        />
         <span>全选</span>
       </div>
       <div class="option">
-        <a href="#none">删除选中的商品</a>
+        <a @click="deleteAllCheckedCart">删除选中的商品</a>
         <a href="#none">移到我的关注</a>
         <a href="#none">清除下柜商品</a>
       </div>
       <div class="money-box">
-        <div class="chosed">已选择
-          <span>0</span>件商品</div>
+        <div class="chosed">已选择 <span>0</span>件商品</div>
         <div class="sumprice">
           <em>总价（不含运费） ：</em>
-          <i class="summoney">{{totalPrice}}</i>
+          <i class="summoney">{{ totalPrice }}</i>
         </div>
         <div class="sumbtn">
           <a class="sum-btn" href="###" target="_blank">结算</a>
@@ -127,295 +153,308 @@
 </template>
 
 <script>
-  import { mapGetters } from 'vuex'
-  import throttle from "lodash/throttle";
-  export default {
-    name: 'ShopCart',
-    mounted(){
-      this.getData()
+import { mapGetters } from "vuex";
+import throttle from "lodash/throttle";
+export default {
+  name: "ShopCart",
+  mounted() {
+    this.getData();
+  },
+  computed: {
+    ...mapGetters(["shopCartInfo"]),
+    totalPrice() {
+      let sum = 0;
+      this.shopCartInfo.forEach((element) => {
+        sum += element.skuNum * element.skuPrice;
+      });
+      return sum;
     },
-    computed:{
-      ...mapGetters(["shopCartInfo"]),
-      totalPrice(){
-        let sum=0
-        this.shopCartInfo.forEach(element => {
-          sum+=element.skuNum*element.skuPrice
+    isAllChecked() {
+      return this.shopCartInfo.every((item) => item.isChecked == 1);
+    },
+  },
+  methods: {
+    getData() {
+      this.$store.dispatch("getCartList");
+    },
+    handler: throttle(async function (type, disnum, good) {
+      switch (type) {
+        case "minus":
+          disnum = good.skuNum > 1 ? -1 : 0;
+          break;
+        case "change":
+          if (isNaN(disnum) || disnum <= 0) {
+            disnum = 0;
+          } else disnum = parseInt(disnum) - good.skuNum;
+          break;
+        case "add":
+          disnum = 1;
+          break;
+      }
+      try {
+        await this.$store.dispatch("addOrUpdateShopCart", {
+          skuId: good.skuId,
+          skuNum: disnum,
         });
-        return sum
-      },
-      isAllChecked(){
-        return this.shopCartInfo.every(item =>item.isChecked==1)
+        this.getData();
+      } catch (error) {
+        alert(error.message);
+      }
+    }, 1000),
+    async deleteById(good) {
+      try {
+        await this.$store.dispatch("deleteCartById", { skuId: good.skuId });
+        this.getData();
+      } catch (error) {
+        alert(error.message);
       }
     },
-    methods:{
-      getData() {
-        this.$store.dispatch("getCartList")
-      },
-      handler: throttle(async function(type,disnum,good)
-       {
-        switch(type){
-          case 'minus':
-            disnum=good.skuNum>1?-1:0
-            break
-          case 'change':
-            if(isNaN(disnum)||disnum<=0){
-              disnum=0
-            } 
-            else(
-              disnum=parseInt(disnum)-good.skuNum
-            )
-            break
-          case 'add':
-            disnum=1
-            break
-        }
-        try {
-          await this.$store.dispatch('addOrUpdateShopCart',{skuId:good.skuId,skuNum:disnum})
-          this.getData()
-        }catch(error){
-          alert(error.message)
-        }
-      },1000),
-      async deleteById(good){
-        try {
-          await this.$store.dispatch('deleteCartById',{skuId:good.skuId})
-          this.getData()
-        }catch(error){
-          alert(error.message)
-        }
-      },
-      async changeChecked(good,event){
-        let isChecked=event.target.checked?1:2
-        try{
-          await this.$store.dispatch('changeCheckedById',{skuId : good.skuId, isChecked : isChecked})
-          this.getData()
-        }catch(error){
-          alert(error.message)
-        }
+    async changeChecked(good, event) {
+      let isChecked = event.target.checked ? 1 : 0;
+      try {
+        await this.$store.dispatch("changeCheckedById", {
+          skuId: good.skuId,
+          isChecked: isChecked,
+        });
+        this.getData();
+      } catch (error) {
+        alert(error.message);
       }
-      // handler(type,num,good){
-      //   console.log(type,num,good)
-      // }
-
-    }
-  }
+    },
+    async deleteAllCheckedCart() {
+      try {
+        await this.$store.dispatch("deleteAllCheckedCart");
+        this.getData();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+    async changeAllChecked(event) {
+      try {
+        let isChecked = event.target.checked ? 1 : 0;
+        await this.$store.dispatch("changeAllChecked", isChecked);
+        this.getData();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+  },
+};
 </script>
 
 <style lang="less" scoped>
-  .cart {
-    width: 1200px;
-    margin: 0 auto;
+.cart {
+  width: 1200px;
+  margin: 0 auto;
 
-    h4 {
-      margin: 9px 0;
-      font-size: 14px;
-      line-height: 21px;
-    }
+  h4 {
+    margin: 9px 0;
+    font-size: 14px;
+    line-height: 21px;
+  }
 
-    .cart-main {
-      .cart-th {
-        background: #f5f5f5;
-        border: 1px solid #ddd;
-        padding: 10px;
-        overflow: hidden;
-
-        &>div {
-          float: left;
-        }
-
-        .cart-th1 {
-          width: 25%;
-
-          input {
-            vertical-align: middle;
-          }
-
-          span {
-            vertical-align: middle;
-          }
-        }
-
-        .cart-th2 {
-          width: 25%;
-        }
-
-        .cart-th3,
-        .cart-th4,
-        .cart-th5,
-        .cart-th6 {
-          width: 12.5%;
-
-        }
-      }
-
-      .cart-body {
-        margin: 15px 0;
-        border: 1px solid #ddd;
-
-        .cart-list {
-          padding: 10px;
-          border-bottom: 1px solid #ddd;
-          overflow: hidden;
-
-          &>li {
-            float: left;
-          }
-
-          .cart-list-con1 {
-            width: 15%;
-          }
-
-          .cart-list-con2 {
-            width: 35%;
-
-            img {
-              width: 82px;
-              height: 82px;
-              float: left;
-            }
-
-            .item-msg {
-              float: left;
-              width: 150px;
-              margin: 0 10px;
-              line-height: 18px;
-            }
-          }
-
-          // .cart-list-con3 {
-          //   width: 20.8333%;
-
-          //   .item-txt {
-          //     text-align: center;
-          //   }
-          // }
-
-          .cart-list-con4 {
-            width: 10%;
-
-          }
-
-          .cart-list-con5 {
-            width: 17%;
-
-            .mins {
-              border: 1px solid #ddd;
-              border-right: 0;
-              float: left;
-              color: #666;
-              width: 6px;
-              text-align: center;
-              padding: 8px;
-            }
-
-            input {
-              border: 1px solid #ddd;
-              width: 40px;
-              height: 33px;
-              float: left;
-              text-align: center;
-              font-size: 14px;
-            }
-
-            .plus {
-              border: 1px solid #ddd;
-              border-left: 0;
-              float: left;
-              color: #666;
-              width: 6px;
-              text-align: center;
-              padding: 8px;
-            }
-          }
-
-          .cart-list-con6 {
-            width: 10%;
-
-            .sum {
-              font-size: 16px;
-            }
-          }
-
-          .cart-list-con7 {
-            width: 13%;
-
-            a {
-              color: #666;
-            }
-          }
-        }
-      }
-    }
-
-    .cart-tool {
-      overflow: hidden;
+  .cart-main {
+    .cart-th {
+      background: #f5f5f5;
       border: 1px solid #ddd;
+      padding: 10px;
+      overflow: hidden;
 
-      .select-all {
-        padding: 10px;
-        overflow: hidden;
+      & > div {
         float: left;
+      }
 
-        span {
-          vertical-align: middle;
-        }
+      .cart-th1 {
+        width: 25%;
 
         input {
           vertical-align: middle;
         }
+
+        span {
+          vertical-align: middle;
+        }
       }
 
-      .option {
+      .cart-th2 {
+        width: 25%;
+      }
+
+      .cart-th3,
+      .cart-th4,
+      .cart-th5,
+      .cart-th6 {
+        width: 12.5%;
+      }
+    }
+
+    .cart-body {
+      margin: 15px 0;
+      border: 1px solid #ddd;
+
+      .cart-list {
         padding: 10px;
+        border-bottom: 1px solid #ddd;
         overflow: hidden;
-        float: left;
 
-        a {
+        & > li {
           float: left;
-          padding: 0 10px;
-          color: #666;
-        }
-      }
-
-      .money-box {
-        float: right;
-
-        .chosed {
-          line-height: 26px;
-          float: left;
-          padding: 0 10px;
         }
 
-        .sumprice {
-          width: 200px;
-          line-height: 22px;
-          float: left;
-          padding: 0 10px;
+        .cart-list-con1 {
+          width: 15%;
+        }
 
-          .summoney {
-            color: #c81623;
+        .cart-list-con2 {
+          width: 35%;
+
+          img {
+            width: 82px;
+            height: 82px;
+            float: left;
+          }
+
+          .item-msg {
+            float: left;
+            width: 150px;
+            margin: 0 10px;
+            line-height: 18px;
+          }
+        }
+
+        // .cart-list-con3 {
+        //   width: 20.8333%;
+
+        //   .item-txt {
+        //     text-align: center;
+        //   }
+        // }
+
+        .cart-list-con4 {
+          width: 10%;
+        }
+
+        .cart-list-con5 {
+          width: 17%;
+
+          .mins {
+            border: 1px solid #ddd;
+            border-right: 0;
+            float: left;
+            color: #666;
+            width: 6px;
+            text-align: center;
+            padding: 8px;
+          }
+
+          input {
+            border: 1px solid #ddd;
+            width: 40px;
+            height: 33px;
+            float: left;
+            text-align: center;
+            font-size: 14px;
+          }
+
+          .plus {
+            border: 1px solid #ddd;
+            border-left: 0;
+            float: left;
+            color: #666;
+            width: 6px;
+            text-align: center;
+            padding: 8px;
+          }
+        }
+
+        .cart-list-con6 {
+          width: 10%;
+
+          .sum {
             font-size: 16px;
           }
         }
 
-        .sumbtn {
-          float: right;
+        .cart-list-con7 {
+          width: 13%;
 
           a {
-            display: block;
-            position: relative;
-            width: 96px;
-            height: 52px;
-            line-height: 52px;
-            color: #fff;
-            text-align: center;
-            font-size: 18px;
-            font-family: "Microsoft YaHei";
-            background: #e1251b;
-            overflow: hidden;
+            color: #666;
           }
         }
       }
     }
   }
+
+  .cart-tool {
+    overflow: hidden;
+    border: 1px solid #ddd;
+
+    .select-all {
+      padding: 10px;
+      overflow: hidden;
+      float: left;
+
+      span {
+        vertical-align: middle;
+      }
+
+      input {
+        vertical-align: middle;
+      }
+    }
+
+    .option {
+      padding: 10px;
+      overflow: hidden;
+      float: left;
+
+      a {
+        float: left;
+        padding: 0 10px;
+        color: #666;
+      }
+    }
+
+    .money-box {
+      float: right;
+
+      .chosed {
+        line-height: 26px;
+        float: left;
+        padding: 0 10px;
+      }
+
+      .sumprice {
+        width: 200px;
+        line-height: 22px;
+        float: left;
+        padding: 0 10px;
+
+        .summoney {
+          color: #c81623;
+          font-size: 16px;
+        }
+      }
+
+      .sumbtn {
+        float: right;
+
+        a {
+          display: block;
+          position: relative;
+          width: 96px;
+          height: 52px;
+          line-height: 52px;
+          color: #fff;
+          text-align: center;
+          font-size: 18px;
+          font-family: "Microsoft YaHei";
+          background: #e1251b;
+          overflow: hidden;
+        }
+      }
+    }
+  }
+}
 </style>
